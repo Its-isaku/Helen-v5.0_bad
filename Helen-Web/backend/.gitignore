@@ -1,0 +1,20 @@
+dataset_gestos
+isai
+edi
+gareth
+merge_videos.py
+
+# Entorno virtual
+venv/
+
+# Caché de Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Variables de entorno
+.env
+api.log
+api.pid

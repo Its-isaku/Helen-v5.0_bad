@@ -1,0 +1,14 @@
+# Entorno virtual
+venv/
+
+# Caché de Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Variables de entorno
+.env
+api.log
+api.pid

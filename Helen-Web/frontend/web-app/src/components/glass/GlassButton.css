@@ -1,0 +1,114 @@
+.glass-button {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    color: var(--color-text-primary);
+    font-family: inherit;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s ease, border-color 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 24px;
+}
+
+/* Glassmorphism in modals */
+.glass-modal .glass-button {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.glass-button:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+/* Modal button hover */
+.glass-modal .glass-button:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+.glass-button:active:not(:disabled) {
+    opacity: 0.8;
+}
+
+.glass-button:focus-visible {
+    outline: 2px solid rgba(255, 255, 255, 0.6);
+    outline-offset: 2px;
+}
+
+.glass-button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+/* sizes */
+.glass-button--small {
+    padding: 8px 16px;
+    font-size: 14px;
+    border-radius: 8px;
+}
+
+.glass-button--medium {
+    padding: 12px 24px;
+    font-size: 16px;
+}
+
+.glass-button--large {
+    padding: 16px 32px;
+    font-size: 18px;
+}
+
+/* variants */
+.glass-button--primary {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.glass-modal .glass-button--primary {
+    background: rgba(100, 150, 255, 0.4);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.glass-button--secondary {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.glass-modal .glass-button--secondary {
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.glass-button--icon {
+    padding: 12px;
+    border-radius: 50%;
+    aspect-ratio: 1;
+}
+
+.glass-button--icon.glass-button--small {
+    padding: 8px;
+}
+
+.glass-button--icon.glass-button--large {
+    padding: 16px;
+}
+
+.glass-button__icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2em;
+}
+
+.glass-button__text {
+    line-height: 1;
+}

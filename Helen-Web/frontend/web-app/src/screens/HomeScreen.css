@@ -1,0 +1,213 @@
+.home-screen {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    padding: 32px;
+    gap: 20px;
+    position: relative;
+}
+
+/* Central Circle - Absolutely centered, overlaps everything */
+.home-screen__circle-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 100;
+}
+
+/* TOP SECTION - Weather, Date, Settings + Shortcuts */
+.home-screen__top-section {
+    flex: 1;
+    display: flex;
+    gap: 14px;
+    z-index: 1;
+}
+
+/* BOTTOM SECTION - Devices, Time, Alarms */
+.home-screen__bottom-section {
+    flex: 1;
+    display: flex;
+    gap: 14px;
+    z-index: 1;
+}
+
+/* Individual card sizing */
+
+/* Large square cards - Weather, Devices, Alarms */
+.home-screen__card--weather,
+.home-screen__card--devices,
+.home-screen__card--alarms {
+    flex: 0 0 250px;
+    width: 250px;
+}
+
+/* Medium centered cards - Date, Time */
+.home-screen__card--date,
+.home-screen__card--time {
+    flex: 1;
+    min-width: 300px;
+}
+
+/* Smaller card - Settings */
+.home-screen__card--settings {
+    flex: 0 0 160px;
+    width: 160px;
+}
+
+/* Shortcuts vertical column */
+.home-screen__shortcuts {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    flex: 0 0 75px;
+    width: 75px;
+}
+
+/* Date card - no special effects */
+.home-screen__card--date {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 24px;
+}
+
+/* Time card - no special effects */
+.home-screen__card--time {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1;
+}
+
+/* Override glass-card__content for time card specifically */
+.home-screen__card--time .glass-card__content {
+    justify-content: flex-end;
+    padding-bottom: 40px;
+}
+
+.home-screen__card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 24px;
+}
+
+/* Regular cards */
+.home-screen__card--weather,
+.home-screen__card--settings,
+.home-screen__card--devices,
+.home-screen__card--alarms {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+}
+
+.home-screen__card-icon {
+    font-size: 48px;
+    line-height: 1;
+    opacity: 0.5;
+}
+
+.home-screen__card-icon--small {
+    font-size: 32px;
+    opacity: 0.7;
+}
+
+.home-screen__card-title {
+    margin-top: 20px;
+    font-size: 20px;
+    font-weight: 500;
+    color: var(--color-text-primary);
+    text-align: center;
+}
+
+/* Shortcut buttons - smaller, icon only */
+.home-screen__card--shortcut {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px;
+    min-height: 60px;
+}
+
+/* Date card styles */
+.home-screen__card--date {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 24px;
+}
+
+.home-screen__date-day {
+    margin: 0;
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--color-text-secondary);
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+}
+
+.home-screen__date-full {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    line-height: 1.3;
+}
+
+/* Time display */
+.home-screen__time {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    letter-spacing: 2px;
+    text-transform: lowercase;
+}
+
+/* Theme modal grid */
+.theme-modal-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    max-height: 400px;
+    overflow-y: auto;
+    padding: 8px 0;
+}
+
+.theme-modal-grid__item--active {
+    background: rgba(255, 255, 255, 0.15);
+    border: 2px solid var(--color-icon);
+}
+
+.theme-modal-grid__preview {
+    width: 100%;
+    height: 48px;
+    border-radius: 10px;
+    margin-bottom: 6px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+    border: 1px solid rgba(255,255,255,0.10);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.theme-modal-grid .glass-card {
+    min-width: 0;
+    min-height: 90px; /* Increase/decrease for bigger/smaller cards */
+    padding: 12px 8px; /* Adjust padding as needed */
+}

@@ -1,0 +1,119 @@
+"""
+Implementaciones Concretas de Repositorios (SOLID)
+Cada clase tiene una única responsabilidad bien definida
+"""
+
+from pathlib import Path
+from typing import Dict, Tuple
+import json
+import numpy as np
+import torch
+from interfaces import IDataLoader, IModelSaver, IGestureRepository
+
+
+class FileDataLoader(IDataLoader):
+    """
+    Carga datos desde archivos .npy (Single Responsibility)
+    Solo se encarga de leer datos del sistema de archivos
+    """
+    
+    def __init__(self, base_dir: Path):
+        self.base_dir = Path(base_dir)
+        self.x_data_path = self.base_dir / "X_data.npy"
+        self.y_labels_path = self.base_dir / "Y_labels.npy"
+    
+    def load_training_data(self) -> Tuple[np.ndarray, np.ndarray]:
+        """Carga X_data.npy y Y_labels.npy"""
+        if not self.data_exists():
+            raise FileNotFoundError(
+                f"No se encontraron datos en {self.base_dir}. "
+                "Ejecuta data_prep.py primero."
+            )
+        
+        X = np.load(self.x_data_path)
+        Y = np.load(self.y_labels_path)
+        
+        return X, Y
+    
+    def data_exists(self) -> bool:
+        """Verifica que existan ambos archivos de datos"""
+        return self.x_data_path.exists() and self.y_labels_path.exists()
+
+
+class TorchModelSaver(IModelSaver):
+    """
+    Guarda y carga modelos PyTorch (Single Responsibility)
+    Solo maneja la persistencia de modelos y estadísticas
+    """
+    
+    def save_model(self, model: torch.nn.Module, path: Path) -> None:
+        """Guarda el state_dict del modelo"""
+        torch.save(model.state_dict(), path)
+    
+    def load_model(self, model: torch.nn.Module, path: Path) -> torch.nn.Module:
+        """Carga el state_dict en un modelo existente"""
+        model.load_state_dict(torch.load(path, map_location='cpu'))
+        return model
+    
+    def save_normalization_stats(self, stats: Dict, path: Path) -> None:
+        """Guarda estadísticas de normalización (mean, std)"""
+        torch.save(stats, path)
+
+
+class JsonGestureRepository(IGestureRepository):
+    """
+    Gestiona el mapeo de gestos en formato JSON (Single Responsibility)
+    Solo se encarga de CRUD del mapeo de gestos
+    """
+    
+    def __init__(self, gestures_map_path: Path):
+        self.gestures_map_path = Path(gestures_map_path)
+        self._gestures_map = self._load()
+    
+    def _load(self) -> Dict[str, int]:
+        """Carga interna del JSON"""
+        if self.gestures_map_path.exists():
+            with open(self.gestures_map_path, 'r') as f:
+                return json.load(f)
+        return {}
+    
+    def load_gestures_map(self) -> Dict[str, int]:
+        """Retorna el mapeo de gestos actual"""
+        return self._gestures_map.copy()
+    
+    def save_gestures_map(self, gestures_map: Dict[str, int]) -> None:
+        """Guarda el mapeo de gestos en JSON"""
+        self._gestures_map = gestures_map
+        with open(self.gestures_map_path, 'w') as f:
+            json.dump(gestures_map, f, indent=2)
+    
+    def add_gesture(self, gesture_name: str) -> int:
+        """
+        Agrega un nuevo gesto al mapeo
+        
+        Returns:
+            int: ID asignado al gesto
+        """
+        if gesture_name in self._gestures_map:
+            return self._gestures_map[gesture_name]
+        
+        # Asignar nuevo ID
+        new_id = len(self._gestures_map)
+        self._gestures_map[gesture_name] = new_id
+        
+        # Guardar automáticamente
+        self.save_gestures_map(self._gestures_map)
+        
+        return new_id
+    
+    def get_gesture_count(self) -> int:
+        """Retorna el número de gestos registrados"""
+        return len(self._gestures_map)
+    
+    def gesture_exists(self, gesture_name: str) -> bool:
+        """Verifica si un gesto ya existe"""
+        return gesture_name in self._gestures_map
+    
+    def get_gesture_id(self, gesture_name: str) -> int:
+        """Obtiene el ID de un gesto"""
+        return self._gestures_map.get(gesture_name, -1)
