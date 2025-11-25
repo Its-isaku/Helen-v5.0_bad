@@ -1,0 +1,271 @@
+"""
+Servicio de Entrenamiento (SOLID - Single Responsibility & Dependency Inversion)
+Orquesta el entrenamiento sin depender de implementaciones concretas
+"""
+
+from pathlib import Path
+from typing import Dict, Optional
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from torch.utils.data import DataLoader, TensorDataset
+from sklearn.model_selection import train_test_split
+import numpy as np
+
+from interfaces import IDataLoader, IModelSaver, IGestureRepository, ITrainingStrategy
+from model import GestureNet
+
+
+class StandardTrainingStrategy(ITrainingStrategy):
+    """
+    Estrategia estándar de entrenamiento (Strategy Pattern)
+    Permite cambiar la estrategia sin modificar el código principal
+    """
+    
+    def __init__(self, learning_rate: float = 0.001):
+        self.learning_rate = learning_rate
+    
+    def train(
+        self,
+        model: torch.nn.Module,
+        train_loader: DataLoader,
+        val_loader: DataLoader,
+        epochs: int,
+        device: torch.device
+    ) -> Dict[str, float]:
+        """
+        Ejecuta el entrenamiento estándar con Adam optimizer
+        
+        Returns:
+            Dict con métricas finales: best_val_acc, final_train_loss, etc.
+        """
+        criterion = nn.CrossEntropyLoss()
+        optimizer = optim.Adam(model.parameters(), lr=self.learning_rate)
+        
+        best_val_acc = 0.0
+        metrics = {
+            'best_val_acc': 0.0,
+            'final_train_loss': 0.0,
+            'final_train_acc': 0.0,
+            'final_val_loss': 0.0,
+            'final_val_acc': 0.0
+        }
+        
+        for epoch in range(epochs):
+            # Training phase
+            model.train()
+            train_loss = 0.0
+            train_correct = 0
+            train_total = 0
+            
+            for batch_x, batch_y in train_loader:
+                batch_x, batch_y = batch_x.to(device), batch_y.to(device)
+                
+                optimizer.zero_grad()
+                outputs = model(batch_x)
+                loss = criterion(outputs, batch_y)
+                loss.backward()
+                optimizer.step()
+                
+                train_loss += loss.item()
+                _, predicted = torch.max(outputs.data, 1)
+                train_total += batch_y.size(0)
+                train_correct += (predicted == batch_y).sum().item()
+            
+            train_loss /= len(train_loader)
+            train_acc = train_correct / train_total  # Cambiado: sin multiplicar por 100
+            
+            # Validation phase
+            model.eval()
+            val_loss = 0.0
+            val_correct = 0
+            val_total = 0
+            
+            with torch.no_grad():
+                for batch_x, batch_y in val_loader:
+                    batch_x, batch_y = batch_x.to(device), batch_y.to(device)
+                    
+                    outputs = model(batch_x)
+                    loss = criterion(outputs, batch_y)
+                    
+                    val_loss += loss.item()
+                    _, predicted = torch.max(outputs.data, 1)
+                    val_total += batch_y.size(0)
+                    val_correct += (predicted == batch_y).sum().item()
+            
+            val_loss /= len(val_loader)
+            val_acc = val_correct / val_total  # Cambiado: sin multiplicar por 100
+            
+            # Update best accuracy
+            if val_acc > best_val_acc:
+                best_val_acc = val_acc
+            
+            # Store metrics
+            metrics['best_val_acc'] = best_val_acc
+            metrics['final_train_loss'] = train_loss
+            metrics['final_train_acc'] = train_acc
+            metrics['final_val_loss'] = val_loss
+            metrics['final_val_acc'] = val_acc
+            
+            # Yield progress for reporting (generator pattern)
+            yield {
+                'epoch': epoch + 1,
+                'total_epochs': epochs,
+                'train_loss': train_loss,
+                'train_acc': train_acc,
+                'val_loss': val_loss,
+                'val_acc': val_acc,
+                'best_val_acc': best_val_acc
+            }
+        
+        return metrics
+
+
+class ModelTrainingService:
+    """
+    Servicio de Entrenamiento (SOLID - Single Responsibility & Dependency Inversion)
+    
+    Responsabilidades:
+    - Preparar datos para entrenamiento
+    - Coordinar el proceso de entrenamiento
+    - Gestionar guardado del mejor modelo
+    
+    NO hace:
+    - Mostrar UI
+    - Leer/escribir archivos directamente (delega a repositorios)
+    """
+    
+    def __init__(
+        self,
+        data_loader: IDataLoader,
+        model_saver: IModelSaver,
+        gesture_repo: IGestureRepository,
+        training_strategy: ITrainingStrategy,
+        device: Optional[torch.device] = None
+    ):
+        """
+        Constructor con Dependency Injection (Dependency Inversion Principle)
+        No depende de implementaciones concretas, sino de interfaces
+        """
+        self.data_loader = data_loader
+        self.model_saver = model_saver
+        self.gesture_repo = gesture_repo
+        self.training_strategy = training_strategy
+        self.device = device or torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    
+    def prepare_data(
+        self,
+        validation_split: float = 0.2,
+        batch_size: int = 16
+    ) -> tuple:
+        """
+        Prepara los datos para entrenamiento
+        
+        Returns:
+            Tuple[DataLoader, DataLoader, int, Dict]: 
+                (train_loader, val_loader, n_classes, norm_stats)
+        """
+        # Cargar datos usando el repositorio
+        X, Y = self.data_loader.load_training_data()
+        
+        # Convertir a tensores
+        X_tensor = torch.FloatTensor(X)
+        Y_tensor = torch.LongTensor(Y)
+        
+        # Normalización
+        mean = X_tensor.mean(dim=(0, 1), keepdim=True)
+        std = X_tensor.std(dim=(0, 1), keepdim=True) + 1e-8
+        X_tensor = (X_tensor - mean) / std
+        
+        # Estadísticas de normalización para guardar
+        norm_stats = {'mean': mean, 'std': std}
+        
+        # Split train/validation
+        X_train, X_val, Y_train, Y_val = train_test_split(
+            X_tensor, Y_tensor,
+            test_size=validation_split,
+            random_state=42,
+            stratify=Y_tensor
+        )
+        
+        # Crear DataLoaders
+        train_dataset = TensorDataset(X_train, Y_train)
+        val_dataset = TensorDataset(X_val, Y_val)
+        
+        train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+        val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
+        
+        # Obtener número de clases
+        n_classes = self.gesture_repo.get_gesture_count()
+        
+        return train_loader, val_loader, n_classes, norm_stats
+    
+    def train_model(
+        self,
+        epochs: int = 50,
+        batch_size: int = 16,
+        validation_split: float = 0.2,
+        model_save_path: Optional[Path] = None,
+        norm_stats_path: Optional[Path] = None
+    ):
+        """
+        Ejecuta el entrenamiento del modelo
+        
+        Yields:
+            Dict con progreso de cada época
+            
+        Returns:
+            Dict con métricas finales
+        """
+        # Preparar datos
+        train_loader, val_loader, n_classes, norm_stats = self.prepare_data(
+            validation_split, batch_size
+        )
+        
+        # Crear modelo
+        model = GestureNet(output_size=n_classes).to(self.device)
+        
+        # Variables para guardar mejor modelo
+        best_val_acc = 0.0
+        best_model_state = None
+        
+        # Entrenar usando la estrategia
+        for progress in self.training_strategy.train(
+            model, train_loader, val_loader, epochs, self.device
+        ):
+            # Guardar mejor modelo
+            if progress['val_acc'] > best_val_acc:
+                best_val_acc = progress['val_acc']
+                best_model_state = model.state_dict().copy()
+            
+            # Yield progress para UI
+            yield progress
+        
+        # Restaurar mejor modelo
+        if best_model_state is not None:
+            model.load_state_dict(best_model_state)
+        
+        # Guardar modelo y estadísticas
+        if model_save_path:
+            self.model_saver.save_model(model, model_save_path)
+        
+        if norm_stats_path:
+            self.model_saver.save_normalization_stats(norm_stats, norm_stats_path)
+        
+        # Retornar métricas finales
+        return {
+            'best_val_acc': best_val_acc,
+            'n_classes': n_classes,
+            'model_info': model.get_model_info()
+        }
+    
+    def get_training_info(self) -> Dict:
+        """
+        Obtiene información sobre el estado actual del entrenamiento
+        """
+        return {
+            'data_exists': self.data_loader.data_exists(),
+            'n_gestures': self.gesture_repo.get_gesture_count(),
+            'gestures_map': self.gesture_repo.load_gestures_map(),
+            'device': str(self.device)
+        }

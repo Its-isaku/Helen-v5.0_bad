@@ -1,0 +1,32 @@
+.glass-foundation {
+    position: absolute;
+    width: calc(100% - 64px);  /* 32px margin on each side */
+    height: calc(100% - 64px); /* 32px margin on top/bottom */
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 3px solid rgba(255, 255, 255, 0.17);
+    border-radius: 20px;
+    overflow: hidden;
+    z-index: 1;
+    transition: opacity 0.2s ease;
+}
+
+/* When a modal is open, visually hide the foundation chrome but keep content alive */
+.modal-open .glass-foundation {
+    background: transparent !important;
+    border-color: transparent !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+}
+
+.glass-foundation__content {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}

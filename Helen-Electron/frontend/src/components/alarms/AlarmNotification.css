@@ -1,0 +1,110 @@
+/**
+ * AlarmNotification Styles
+ * Full-screen alarm notification modal with glass effect
+ * Matches the style of other modals in the app
+ */
+
+.alarm-notification {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    padding: 20px;
+    text-align: center;
+}
+
+/* Animated Icon Container */
+.alarm-notification__icon-container {
+    width: 120px;
+    height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    animation: alarm-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes alarm-pulse {
+    0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.3);
+    }
+    50% {
+        transform: scale(1.05);
+        box-shadow: 0 0 0 15px rgba(255, 255, 255, 0);
+    }
+}
+
+.alarm-notification__icon {
+    font-size: 80px;
+    color: var(--color-icon);
+    animation: alarm-ring 0.5s ease-in-out infinite;
+}
+
+@keyframes alarm-ring {
+    0%, 100% {
+        transform: rotate(-8deg);
+    }
+    25%, 75% {
+        transform: rotate(8deg);
+    }
+    50% {
+        transform: rotate(-8deg);
+    }
+}
+
+/* Time Display */
+.alarm-notification__time {
+    font-size: 66px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    line-height: 1.2;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* Label */
+.alarm-notification__label {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    max-width: 400px;
+    line-height: 1.4;
+}
+
+/* Dismiss Button - Matches GlassButton style */
+.alarm-notification__dismiss-btn {
+    margin-top: 8px;
+    padding: 14px 32px;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    color: var(--color-text-primary);
+    font-size: 20px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.alarm-notification__dismiss-btn:hover {
+    background: rgba(255, 255, 255, 0.25);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.alarm-notification__dismiss-btn:active {
+    transform: scale(0.98);
+    opacity: 0.9;
+}
+
+.alarm-notification__dismiss-btn .material-icons-outlined {
+    font-size: 20px;
+}
+
